@@ -1,0 +1,1 @@
+mvn clean install exec:java -Dexec.mainClass=com.hood.transcoder.Launcher -Dexec.args="c:\Hood\Pictures\2012\09\MVI_2620.MOV"

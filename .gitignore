@@ -1,0 +1,4 @@
+src/main/resources/aws-credentials.properties
+target
+.settings
+.springBeans
