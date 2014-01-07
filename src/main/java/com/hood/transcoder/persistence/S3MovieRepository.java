@@ -1,12 +1,15 @@
 package com.hood.transcoder.persistence;
 
+import java.util.Date;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.event.ProgressListener;
-import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.transfer.TransferManager;
+import com.amazonaws.services.s3.transfer.Upload;
 import com.hood.transcoder.domain.movie.Movie;
 import com.hood.transcoder.domain.movie.MovieNotStoredException;
 import com.hood.transcoder.domain.movie.MovieRepository;
@@ -16,11 +19,11 @@ public class S3MovieRepository implements MovieRepository
     private static final Logger logger = LoggerFactory.getLogger( S3MovieRepository.class );
     private static final String S3_BUCKET_HOOD_ETS_SOURCE = "hood-ets-source";
 
-    private final AmazonS3 s3;
+    private final TransferManager transferManager;
 
-    public S3MovieRepository( final AmazonS3 s3 )
+    public S3MovieRepository( final TransferManager transferManager )
     {
-        this.s3 = s3;
+        this.transferManager = transferManager;
     }
 
     /*
@@ -37,13 +40,16 @@ public class S3MovieRepository implements MovieRepository
         final PutObjectRequest putObjectRequest =
                 new PutObjectRequest( S3_BUCKET_HOOD_ETS_SOURCE, key, movie.getFile() );
         final ProgressListener progressListener = new S3ProgressListener( key, movie.getFile().length() );
-        putObjectRequest.setGeneralProgressListener( progressListener );
+        Upload upload = null;
         try
         {
-            this.s3.putObject( putObjectRequest );
+            upload = this.transferManager.upload( putObjectRequest );
+            upload.addProgressListener( progressListener );
+            upload.waitForCompletion();
         }
-        catch ( final AmazonClientException e )
+        catch ( AmazonClientException | InterruptedException e )
         {
+            this.transferManager.abortMultipartUploads( S3_BUCKET_HOOD_ETS_SOURCE, new Date() );
             throw new MovieNotStoredException( movie, e );
         }
         logger.info( "Upload complete." );
@@ -59,6 +65,6 @@ public class S3MovieRepository implements MovieRepository
     {
         final String key = movie.getMovieId().getMovieId();
         logger.info( "Deleting file: {}", key );
-        this.s3.deleteObject( S3_BUCKET_HOOD_ETS_SOURCE, key );
+        this.transferManager.getAmazonS3Client().deleteObject( S3_BUCKET_HOOD_ETS_SOURCE, key );
     }
 }

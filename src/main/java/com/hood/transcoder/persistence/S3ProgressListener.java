@@ -14,6 +14,8 @@ public class S3ProgressListener implements ProgressListener
     private final long fileSize;
 
     private long bytesTransferred;
+    private long partsStarted;
+    private long partsCompleted;
     private long lastNotifiedBytesTransferred;
 
     public S3ProgressListener( final String filename, final long fileSize )
@@ -22,6 +24,8 @@ public class S3ProgressListener implements ProgressListener
         this.filename = filename;
         this.fileSize = fileSize;
         this.bytesTransferred = 0;
+        this.partsStarted = 0;
+        this.partsCompleted = 0;
     }
 
     @Override
@@ -35,6 +39,40 @@ public class S3ProgressListener implements ProgressListener
                          this.bytesTransferred,
                          this.fileSize );
             this.lastNotifiedBytesTransferred = this.bytesTransferred;
+        }
+        switch ( progressEvent.getEventCode() )
+        {
+            case ProgressEvent.STARTED_EVENT_CODE:
+                logger.info( "Started transferring {}, {} of {} bytes complete.",
+                             this.filename,
+                             this.bytesTransferred,
+                             this.fileSize );
+                break;
+
+            case ProgressEvent.PART_STARTED_EVENT_CODE:
+                this.partsStarted++;
+                logger.info( "Started transferring part {} of {}, {} of {} bytes complete.",
+                             this.partsStarted,
+                             this.filename,
+                             this.bytesTransferred,
+                             this.fileSize );
+                break;
+
+            case ProgressEvent.PART_COMPLETED_EVENT_CODE:
+                this.partsCompleted++;
+                logger.info( "Completed transferring part {} of {}, {} of {} bytes complete.",
+                             this.partsCompleted,
+                             this.filename,
+                             this.bytesTransferred,
+                             this.fileSize );
+                break;
+
+            case ProgressEvent.COMPLETED_EVENT_CODE:
+                logger.info( "Completed transferring {}, {} of {} bytes complete.",
+                             this.filename,
+                             this.bytesTransferred,
+                             this.fileSize );
+                break;
         }
     }
 }

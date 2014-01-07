@@ -12,6 +12,7 @@ import com.amazonaws.services.elastictranscoder.AmazonElasticTranscoder;
 import com.amazonaws.services.elastictranscoder.AmazonElasticTranscoderClient;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.hood.transcoder.application.TranscoderApplication;
@@ -32,7 +33,7 @@ class ApplicationConfig
     @Bean
     MovieRepository movieRepository()
     {
-        return new S3MovieRepository( this.amazonS3Client() );
+        return new S3MovieRepository( this.amazonTransferManager() );
     }
 
     @Bean
@@ -49,7 +50,13 @@ class ApplicationConfig
                                                   this.transcoderApplication() );
     }
 
-    @Bean
+    @Bean( destroyMethod = "shutdownNow" )
+    TransferManager amazonTransferManager()
+    {
+        return new TransferManager( this.amazonS3Client() );
+    }
+
+    @Bean( destroyMethod = "shutdown" )
     AmazonS3 amazonS3Client()
     {
         return this.awsRegion().createClient( AmazonS3Client.class, this.awsCredentials(), new ClientConfiguration() );
