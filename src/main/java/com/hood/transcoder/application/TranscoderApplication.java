@@ -7,15 +7,15 @@ import java.nio.file.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hood.transcoder.domain.TranscodeRequest;
-import com.hood.transcoder.domain.TranscodingJob;
-import com.hood.transcoder.domain.TranscodingJobRepository;
-import com.hood.transcoder.domain.TranscodingService;
 import com.hood.transcoder.domain.movie.Movie;
 import com.hood.transcoder.domain.movie.MovieFormat;
 import com.hood.transcoder.domain.movie.MovieId;
 import com.hood.transcoder.domain.movie.MovieNotStoredException;
 import com.hood.transcoder.domain.movie.MovieRepository;
+import com.hood.transcoder.domain.transcoding.TranscodeRequest;
+import com.hood.transcoder.domain.transcoding.TranscodingJob;
+import com.hood.transcoder.domain.transcoding.TranscodingJobRepository;
+import com.hood.transcoder.domain.transcoding.TranscodingService;
 
 public class TranscoderApplication implements TranscodeEventHandler
 {

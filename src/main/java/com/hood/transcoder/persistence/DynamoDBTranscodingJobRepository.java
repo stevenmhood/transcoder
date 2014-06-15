@@ -11,8 +11,8 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.GetItemResult;
 import com.google.common.collect.ImmutableMap;
-import com.hood.transcoder.domain.TranscodingJob;
-import com.hood.transcoder.domain.TranscodingJobRepository;
+import com.hood.transcoder.domain.transcoding.TranscodingJob;
+import com.hood.transcoder.domain.transcoding.TranscodingJobRepository;
 
 public class DynamoDBTranscodingJobRepository implements TranscodingJobRepository
 {

@@ -1,4 +1,4 @@
-package com.hood.transcoder.domain;
+package com.hood.transcoder.domain.transcoding;
 
 public interface TranscodingJobRepository
 {

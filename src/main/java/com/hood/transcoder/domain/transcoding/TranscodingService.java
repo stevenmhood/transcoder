@@ -1,4 +1,4 @@
-package com.hood.transcoder.domain;
+package com.hood.transcoder.domain.transcoding;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
