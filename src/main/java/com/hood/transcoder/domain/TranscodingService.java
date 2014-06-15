@@ -10,8 +10,6 @@ import com.amazonaws.services.elastictranscoder.model.CreateJobRequest;
 import com.amazonaws.services.elastictranscoder.model.CreateJobResult;
 import com.amazonaws.services.elastictranscoder.model.Job;
 import com.amazonaws.services.elastictranscoder.model.JobInput;
-import com.hood.transcoder.application.TranscodingJob;
-import com.hood.transcoder.domain.movie.MovieId;
 
 public class TranscodingService
 {
@@ -28,8 +26,8 @@ public class TranscodingService
 
     public TranscodingJob transcode( final TranscodeRequest transcodeRequest )
     {
-        final String inputKey = transcodeRequest.getInputFile().getName();
-        final String outputKey = transcodeRequest.getOutputFile().getName();
+        final String inputKey = transcodeRequest.getInputKey();
+        final String outputKey = transcodeRequest.getOutputKey();
 
         // Extract TranscodingService
         logger.info( "Transcoding {} to {}.", inputKey, outputKey );
@@ -61,6 +59,6 @@ public class TranscodingService
         }
         final Job job = jobResult.getJob();
         logger.info( "Job {} is {}.", job.getId(), job.getStatus() );
-        return new TranscodingJob( new MovieId( inputKey ), new MovieId( outputKey ) );
+        return new TranscodingJob( job.getId(), transcodeRequest.getInputPath(), transcodeRequest.getOutputPath() );
     }
 }

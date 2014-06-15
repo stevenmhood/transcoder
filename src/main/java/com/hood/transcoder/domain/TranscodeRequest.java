@@ -1,6 +1,7 @@
 package com.hood.transcoder.domain;
 
-import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Objects;
 
 import com.google.common.io.Files;
@@ -9,37 +10,46 @@ import com.hood.transcoder.domain.movie.MovieFormat;
 
 public class TranscodeRequest
 {
-    private final File inputFile;
-    private final File outputFile;
+    private final Path parentPath;
+    private final String inputKey;
+    private final String outputKey;
 
     public TranscodeRequest( final Movie movie, final MovieFormat destinationFormat )
     {
-        this.inputFile = movie.getFile();
-        this.outputFile = new File( this.getOutputFilename( destinationFormat ) );
+        this.parentPath = movie.getPath().getParent();
+        this.inputKey = movie.getPath().getFileName().toString();
+        this.outputKey = this.getOutputKey( destinationFormat );
     }
 
-    public File getInputFile()
+    public String getInputKey()
     {
-        return this.inputFile;
+        return this.inputKey;
     }
 
-    private String getOutputFilename( final MovieFormat destinationFormat )
+    private String getOutputKey( final MovieFormat destinationFormat )
     {
-        final String inputFilename = this.inputFile.getName();
-        final String outputFilename =
-                Files.getNameWithoutExtension( inputFilename ) + "." + destinationFormat.getExtension();
-        return outputFilename;
+        return Files.getNameWithoutExtension( this.inputKey ) + "." + destinationFormat.getExtension();
     }
 
-    public File getOutputFile()
+    public String getOutputKey()
     {
-        return this.outputFile;
+        return this.outputKey;
+    }
+
+    public Path getInputPath()
+    {
+        return Paths.get( this.parentPath.toString(), this.inputKey );
+    }
+
+    public Path getOutputPath()
+    {
+        return Paths.get( this.parentPath.toString(), this.outputKey );
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash( this.inputFile, this.outputFile );
+        return Objects.hash( this.parentPath, this.inputKey, this.outputKey );
     }
 
     @Override
@@ -56,8 +66,9 @@ public class TranscodeRequest
         if ( o instanceof TranscodeRequest )
         {
             final TranscodeRequest other = (TranscodeRequest) o;
-            return Objects.equals( this.inputFile, other.inputFile )
-                    && Objects.equals( this.outputFile, other.outputFile );
+            return Objects.equals( this.parentPath, other.parentPath )
+                    && Objects.equals( this.inputKey, other.inputKey )
+                    && Objects.equals( this.outputKey, other.outputKey );
         }
         return false;
     }

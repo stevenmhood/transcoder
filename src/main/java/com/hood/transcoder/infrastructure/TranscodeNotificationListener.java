@@ -14,8 +14,8 @@ import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.amazonaws.util.json.JSONArray;
 import com.amazonaws.util.json.JSONException;
 import com.amazonaws.util.json.JSONObject;
+import com.hood.transcoder.application.TranscodeEvent;
 import com.hood.transcoder.application.TranscodeEventHandler;
-import com.hood.transcoder.application.TranscodingJob;
 import com.hood.transcoder.domain.movie.MovieId;
 
 public class TranscodeNotificationListener implements Runnable
@@ -100,15 +100,16 @@ public class TranscodeNotificationListener implements Runnable
 
     private void notifyComplete( final JSONObject jsonMessage ) throws JSONException
     {
+        final String jobId = jsonMessage.getString( "jobId" );
         final String inputKey = jsonMessage.getJSONObject( "input" ).getString( "key" );
         final JSONArray jsonOutputList = jsonMessage.getJSONArray( "outputs" );
         for ( int i = 0; i < jsonOutputList.length(); i++ )
         {
             final JSONObject jsonOutput = jsonOutputList.getJSONObject( i );
             final String outputKey = jsonOutput.getString( "key" );
-            final TranscodingJob completedTranscodeJob =
-                    new TranscodingJob( new MovieId( inputKey ), new MovieId( outputKey ) );
-            this.transcodeEventHandler.onTranscodeComplete( completedTranscodeJob );
+            final TranscodeEvent completedTranscodeEvent =
+                    new TranscodeEvent( jobId, new MovieId( inputKey ), new MovieId( outputKey ) );
+            this.transcodeEventHandler.onTranscodeComplete( completedTranscodeEvent );
         }
     }
 }

@@ -1,13 +1,15 @@
 package com.hood.transcoder.application;
 
-import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hood.transcoder.domain.TranscodeRequest;
+import com.hood.transcoder.domain.TranscodingJob;
+import com.hood.transcoder.domain.TranscodingJobRepository;
 import com.hood.transcoder.domain.TranscodingService;
 import com.hood.transcoder.domain.movie.Movie;
 import com.hood.transcoder.domain.movie.MovieFormat;
@@ -20,21 +22,23 @@ public class TranscoderApplication implements TranscodeEventHandler
     private static final Logger logger = LoggerFactory.getLogger( TranscoderApplication.class );
 
     private final MovieRepository movieRepository;
+    private final TranscodingJobRepository transcodingJobRepository;
     private final TranscodingService transcodingService;
-    private final Set<TranscodingJob> activeTranscodingJobs;
 
-    public TranscoderApplication( final MovieRepository movieRepository, final TranscodingService transcodingService )
+    public TranscoderApplication( final MovieRepository movieRepository,
+                                  final TranscodingJobRepository transcodingJobRepository,
+                                  final TranscodingService transcodingService )
     {
         super();
         this.movieRepository = movieRepository;
+        this.transcodingJobRepository = transcodingJobRepository;
         this.transcodingService = transcodingService;
-        this.activeTranscodingJobs = new HashSet<>();
     }
 
-    public void transcodeFile( final File file )
+    public void transcodePath( final Path path )
     {
-        final MovieId movieId = new MovieId( file.getName() );
-        final Movie movie = new Movie( movieId, file );
+        final MovieId movieId = new MovieId( path.getFileName().toString() );
+        final Movie movie = new Movie( movieId, path );
         try
         {
             this.movieRepository.store( movie );
@@ -45,25 +49,43 @@ public class TranscoderApplication implements TranscodeEventHandler
             return;
         }
         final TranscodeRequest transcodeRequest = new TranscodeRequest( movie, MovieFormat.MP4 );
-        final Movie outputMovie = new Movie( new MovieId( transcodeRequest.getOutputFile().getName() ) );
+        final Movie outputMovie = new Movie( new MovieId( transcodeRequest.getOutputKey() ) );
         this.movieRepository.remove( outputMovie );
+
         final TranscodingJob transcodingJob = this.transcodingService.transcode( transcodeRequest );
         if ( transcodingJob != null )
         {
-            this.activeTranscodingJobs.add( transcodingJob );
+            this.transcodingJobRepository.store( transcodingJob );
         }
     }
 
     @Override
-    public void onTranscodeComplete( final TranscodingJob transcodingJob )
+    public void onTranscodeComplete( final TranscodeEvent transcodeEvent )
     {
-        final MovieId movieId = transcodingJob.getInputMovie();
+        final MovieId movieId = transcodeEvent.getInputMovieId();
+
         this.movieRepository.remove( new Movie( movieId ) );
-        this.activeTranscodingJobs.remove( transcodingJob );
+
+        final TranscodingJob transcodingJob = this.transcodingJobRepository.get( transcodeEvent.getId() );
+        final Movie outputMovie = this.movieRepository.get( transcodeEvent.getOutputMovieId() );
+
+        final Path sourcePath = outputMovie.getPath();
+        final Path destinationPath = transcodingJob.getOutputPath();
+        try
+        {
+            Files.copy( sourcePath, destinationPath );
+            logger.info( "Movie retrieved: {}", destinationPath );
+            this.transcodingJobRepository.delete( transcodingJob );
+        }
+        catch ( final IOException e )
+        {
+            logger.error( "Could not copy from {} to {}", sourcePath, destinationPath, e );
+        }
+
     }
 
     public boolean hasOutstandingJobs()
     {
-        return this.activeTranscodingJobs.size() != 0;
+        return true; // this.activeTranscodingJobs.size() != 0;
     }
 }

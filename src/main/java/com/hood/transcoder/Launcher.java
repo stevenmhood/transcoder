@@ -1,6 +1,7 @@
 package com.hood.transcoder;
 
-import java.io.File;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.PropertyConfigurator;
@@ -35,7 +36,8 @@ public class Launcher
         {
             for ( final String arg : args )
             {
-                transcoderApplication.transcodeFile( new File( arg ) );
+                final Path path = FileSystems.getDefault().getPath( arg );
+                transcoderApplication.transcodePath( path );
             }
         }
 

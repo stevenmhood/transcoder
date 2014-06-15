@@ -8,6 +8,8 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.ClasspathPropertiesFileCredentialsProvider;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.elastictranscoder.AmazonElasticTranscoder;
 import com.amazonaws.services.elastictranscoder.AmazonElasticTranscoderClient;
 import com.amazonaws.services.s3.AmazonS3;
@@ -16,9 +18,11 @@ import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.hood.transcoder.application.TranscoderApplication;
+import com.hood.transcoder.domain.TranscodingJobRepository;
 import com.hood.transcoder.domain.TranscodingService;
 import com.hood.transcoder.domain.movie.MovieRepository;
 import com.hood.transcoder.infrastructure.TranscodeNotificationListener;
+import com.hood.transcoder.persistence.DynamoDBTranscodingJobRepository;
 import com.hood.transcoder.persistence.S3MovieRepository;
 
 @Configuration
@@ -27,13 +31,21 @@ class ApplicationConfig
     @Bean
     TranscoderApplication transcoderApplication()
     {
-        return new TranscoderApplication( this.movieRepository(), this.transcodingService() );
+        return new TranscoderApplication( this.movieRepository(),
+                                          this.transcodingJobRepository(),
+                                          this.transcodingService() );
     }
 
     @Bean
     MovieRepository movieRepository()
     {
         return new S3MovieRepository( this.amazonTransferManager() );
+    }
+
+    @Bean
+    TranscodingJobRepository transcodingJobRepository()
+    {
+        return new DynamoDBTranscodingJobRepository( this.amazonDynamoDBClient() );
     }
 
     @Bean
@@ -74,6 +86,14 @@ class ApplicationConfig
     AmazonSQS amazonSQSClient()
     {
         return this.awsRegion().createClient( AmazonSQSClient.class, this.awsCredentials(), new ClientConfiguration() );
+    }
+
+    @Bean( destroyMethod = "shutdown" )
+    AmazonDynamoDB amazonDynamoDBClient()
+    {
+        return this.awsRegion().createClient( AmazonDynamoDBClient.class,
+                                              this.awsCredentials(),
+                                              new ClientConfiguration() );
     }
 
     @Bean

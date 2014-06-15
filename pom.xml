@@ -6,11 +6,11 @@
   <name>Transcoder</name>
   <description>Uses Amazon Elastic Transcoding Service to convert movies from our digital cameras to mp4.</description>
   <properties>
-      <aws-sdk.version>1.6.2</aws-sdk.version>
+      <aws-sdk.version>1.7.12</aws-sdk.version>
       <spring.version>3.2.4.RELEASE</spring.version>
       <slf4j.version>1.7.5</slf4j.version>
       <mainClass>com.hood.transcoder.Launcher</mainClass>
-      <guava.version>15.0</guava.version>
+      <guava.version>17.0</guava.version>
       <java.source.version>1.7</java.source.version>
       <java.target.version>1.7</java.target.version>
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

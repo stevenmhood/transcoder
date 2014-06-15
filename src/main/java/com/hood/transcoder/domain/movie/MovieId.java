@@ -41,4 +41,10 @@ public class MovieId
         }
         return false;
     }
+
+    @Override
+    public String toString()
+    {
+        return com.google.common.base.Objects.toStringHelper( this ).add( "movieId", this.movieId ).toString();
+    }
 }

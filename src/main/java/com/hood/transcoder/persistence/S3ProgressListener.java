@@ -9,6 +9,7 @@ import com.amazonaws.event.ProgressListener;
 public class S3ProgressListener implements ProgressListener
 {
     private static final Logger logger = LoggerFactory.getLogger( S3ProgressListener.class );
+    private static final double ONE_MEGABYTE = Math.pow( 2, 20 );
 
     private final String filename;
     private final long fileSize;
@@ -32,7 +33,7 @@ public class S3ProgressListener implements ProgressListener
     public void progressChanged( final ProgressEvent progressEvent )
     {
         this.bytesTransferred += progressEvent.getBytesTransferred();
-        if ( this.bytesTransferred >= this.lastNotifiedBytesTransferred + Math.pow( 2, 20 ) )
+        if ( this.bytesTransferred >= this.lastNotifiedBytesTransferred + ONE_MEGABYTE )
         {
             logger.info( "Transferring {}, {} of {} bytes complete.",
                          this.filename,

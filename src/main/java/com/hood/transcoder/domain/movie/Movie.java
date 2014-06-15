@@ -1,22 +1,22 @@
 package com.hood.transcoder.domain.movie;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.Objects;
 
 public class Movie
 {
     private final MovieId movieId;
-    private final File file;
+    private final Path path;
 
     public Movie( final MovieId movieId )
     {
         this( movieId, null );
     }
 
-    public Movie( final MovieId movieId, final File file )
+    public Movie( final MovieId movieId, final Path path )
     {
         this.movieId = movieId;
-        this.file = file;
+        this.path = path;
     }
 
     public MovieId getMovieId()
@@ -24,9 +24,9 @@ public class Movie
         return this.movieId;
     }
 
-    public File getFile()
+    public Path getPath()
     {
-        return this.file;
+        return this.path;
     }
 
     @Override
@@ -52,5 +52,12 @@ public class Movie
             return Objects.equals( this.movieId, other.movieId );
         }
         return false;
+    }
+
+    @Override
+    public String toString()
+    {
+        return com.google.common.base.Objects.toStringHelper( this ).add( "movieId", this.movieId )
+                .add( "path", this.path ).toString();
     }
 }
